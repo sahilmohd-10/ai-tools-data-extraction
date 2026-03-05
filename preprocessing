@@ -1,0 +1,74 @@
+import pandas as pd
+import numpy as np
+
+# Load dataset
+df = pd.read_excel("data/raw_data.xlsx")
+
+# Display basic information
+print("Initial Dataset Shape:", df.shape)
+print(df.head())
+
+# ---------------------------
+# Remove duplicate entries
+# ---------------------------
+df = df.drop_duplicates()
+
+# ---------------------------
+# Handle missing values
+# ---------------------------
+df = df.fillna("Not Available")
+
+# ---------------------------
+# Standardize column names
+# ---------------------------
+df.columns = (
+    df.columns
+    .str.strip()
+    .str.lower()
+    .str.replace(" ", "_")
+)
+
+# ---------------------------
+# Clean text fields
+# ---------------------------
+text_columns = ["name", "details", "feature", "pros", "cons"]
+
+for col in text_columns:
+    if col in df.columns:
+        df[col] = df[col].str.strip()
+
+# ---------------------------
+# Extract pricing category
+# ---------------------------
+def categorize_pricing(price):
+    price = str(price).lower()
+
+    if "free" in price:
+        return "Free"
+    elif "trial" in price:
+        return "Free Trial"
+    elif "paid" in price:
+        return "Paid"
+    else:
+        return "Unknown"
+
+if "pricing" in df.columns:
+    df["pricing_category"] = df["pricing"].apply(categorize_pricing)
+
+# ---------------------------
+# Remove empty rows
+# ---------------------------
+df = df.dropna(how="all")
+
+# ---------------------------
+# Reset index
+# ---------------------------
+df = df.reset_index(drop=True)
+
+# ---------------------------
+# Save cleaned dataset
+# ---------------------------
+df.to_csv("data/cleaned_ai_tools_dataset.csv", index=False)
+
+print("Final Dataset Shape:", df.shape)
+print("Data cleaning completed successfully.")
